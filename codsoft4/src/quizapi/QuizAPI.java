@@ -11,7 +11,6 @@ public class QuizAPI {
     private static final String API_BASE_URL = "https://opentdb.com/api.php?amount=10&difficulty=easy&type=multiple";
 
     public static String getQuizData(String difficulty) throws IOException {
-        // Construct the API URL with the specified difficulty level
         String apiUrl = API_BASE_URL + "&difficulty=" + difficulty;
 
         URL url = new URL(apiUrl);

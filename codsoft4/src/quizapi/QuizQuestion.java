@@ -20,7 +20,6 @@ public class QuizQuestion {
         this.question = question;
         this.correctAnswer = correctAnswer;
 
-        // Ensure that incorrectAnswers is never null
         if (incorrectAnswers != null) {
             this.incorrectAnswers = incorrectAnswers;
         } else {
@@ -47,12 +46,10 @@ public class QuizQuestion {
     public List<String> getAllAnswerChoices() {
         List<String> allAnswers = new ArrayList<>();
         
-        // Add incorrect answers if available
         if (incorrectAnswers != null) {
             allAnswers.addAll(incorrectAnswers);
         }
 
-        // Add correct answer
         allAnswers.add(correctAnswer);
 
         return allAnswers;

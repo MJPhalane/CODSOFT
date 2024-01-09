@@ -88,13 +88,11 @@ public class QuizPane extends GridPane {
               
             quizQuestions = parseQuizData(quizData);
 
-            // Ask the user for the answer to the first question
             askUserForAnswer();
 
-            // Start the timer after fetching the quiz data
             timer.play();
         } catch (IOException e) {
-            e.printStackTrace(); // Handle error
+            e.printStackTrace(); 
         }
     }
 
@@ -105,109 +103,65 @@ public class QuizPane extends GridPane {
         if (apiResponse != null && apiResponse.getResults() != null) {
             return apiResponse.getResults();
         } else {
-            // Handle the case where quizQuestions is null
             System.err.println("Error parsing quiz data.");
-            return new ArrayList<>(); // Return an empty list to avoid NPE
+            return new ArrayList<>(); 
         }
     }
     private void askUserForAnswer() {
         if (questionIndex < quizQuestions.size()) {
             QuizQuestion currentQuestion = quizQuestions.get(questionIndex);
 
-            // Create a custom dialog with a ChoiceBox for answer choices
-            Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+  
+            Dialog<String> dialog = new Dialog<>();
             dialog.setTitle("Answer Quiz");
             dialog.setHeaderText("Question " + (questionIndex + 1) + " (" + currentQuestion.getCategory() + "):");
             dialog.setContentText(currentQuestion.getQuestion());
 
-            // Create a ChoiceBox for answer choices
-            ChoiceBox<String> choiceBox = new ChoiceBox<>();
-            choiceBox.getItems().addAll(currentQuestion.getAllAnswerChoices());
+       
+            VBox answerBox = new VBox(10);
 
-            // Set the default value to the first answer choice
-            choiceBox.setValue(currentQuestion.getAllAnswerChoices().get(0));
+        
+            ToggleGroup toggleGroup = new ToggleGroup();
 
-            dialog.getDialogPane().setContent(choiceBox);
+           
+            for (String answerChoice : currentQuestion.getAllAnswerChoices()) {
+                RadioButton radioButton = new RadioButton(answerChoice);
+                radioButton.setToggleGroup(toggleGroup);
+                answerBox.getChildren().add(radioButton);
+            }
 
-            // Add OK button to submit the selected answer
+            dialog.getDialogPane().setContent(answerBox);
+
+            
             ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-            dialog.getButtonTypes().setAll(okButton);
+            dialog.getDialogPane().getButtonTypes().add(okButton);
 
-            Optional<ButtonType> result = dialog.showAndWait();
-
-            result.ifPresent(buttonType -> {
+     
+            dialog.setResultConverter(buttonType -> {
                 if (buttonType == okButton) {
-                    String selectedAnswer = choiceBox.getValue();
-                    // Check the answer
-                    checkAnswer(selectedAnswer, currentQuestion);
-                    // Move to the next question
-                    questionIndex++;
-                    // Ask the user for the next answer
-                    askUserForAnswer();
+                    RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
+                    if (selectedRadioButton != null) {
+                        return selectedRadioButton.getText();
+                    }
                 }
+                return null; 
+            });
+
+            Optional<String> result = dialog.showAndWait();
+
+            result.ifPresent(answer -> {
+         
+                checkAnswer(answer, currentQuestion);
+           
+                questionIndex++;
+             
+                askUserForAnswer();
             });
         } else {
             showResultsAndReset("Quiz completed!");
         }
     }
-
     
-    
-//    private void askUserForAnswer() {
-//        if (questionIndex < quizQuestions.size()) {
-//            QuizQuestion currentQuestion = quizQuestions.get(questionIndex);
-//
-//            // Create a dialog with radio buttons for answer choices
-//            Dialog<String> dialog = new Dialog<>();
-//            dialog.setTitle("Answer Quiz");
-//            dialog.setHeaderText("Question " + (questionIndex + 1) + " (" + currentQuestion.getCategory() + "):");
-//            dialog.setContentText(currentQuestion.getQuestion());
-//
-//    VBox answerBox = new VBox(10);
-
-//            // Create a ToggleGroup for radio buttons
-//            ToggleGroup toggleGroup = new ToggleGroup();
-//
-//            // Add radio buttons for each answer choice
-//            for (String answerChoice : currentQuestion.getAllAnswerChoices()) {
-//                RadioButton radioButton = new RadioButton(answerChoice);
-//                radioButton.setToggleGroup(toggleGroup);
-//               // dialog.getDialogPane().getChildren().add(radioButton);
-    //			answerBox.getChildren().add(radioButton);
-//            }
-//			dialog.getDialogPane().setContent(answerBox);
-
-    //       
-    //  // Add OK button to submit the selected answer
-//            ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-//            dialog.getDialogPane().getButtonTypes().add(okButton);
-//
-//            // Handle the OK button action
-//            dialog.setResultConverter(buttonType -> {
-//                if (buttonType == okButton) {
-//                    RadioButton selectedRadioButton = (RadioButton) toggleGroup.getSelectedToggle();
-//                    if (selectedRadioButton != null) {
-//                        return selectedRadioButton.getText();
-//                    }
-//                }
-//                return null; // Null if no answer selected
-//            });
-//
-//            Optional<String> result = dialog.showAndWait();
-//
-//            result.ifPresent(answer -> {
-//                // Check the answer
-//                checkAnswer(answer, currentQuestion);
-//                // Move to the next question
-//                questionIndex++;
-//                // Ask the user for the next answer
-//                askUserForAnswer();
-//            });
-//        } else {
-//            showResultsAndReset("Quiz completed!");
-//        }
-//    }
-
     private void checkAnswer(String userAnswer, QuizQuestion currentQuestion) {
         if (userAnswer.equalsIgnoreCase(currentQuestion.getCorrectAnswer())) {
             userScore++;
@@ -233,7 +187,7 @@ public class QuizPane extends GridPane {
         resultsAlert.setContentText(message + "\nYour score: " + userScore);
         resultsAlert.showAndWait();
 
-        // Reset quiz variables
+       
         remainingTime = 60;
         userScore = 0;
         questionIndex = 0;
